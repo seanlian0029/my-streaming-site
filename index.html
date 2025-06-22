@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SJ Collection - Home</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #0e0e0e;
+      color: #fff;
+      padding: 30px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.8rem;
+      margin-bottom: 50px;
+      color: #ffffff;
+      text-shadow: 0 2px 8px #3a8bfd;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .card {
+      background: #1c1c1c;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(58, 139, 253, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 30px rgba(58, 139, 253, 0.3);
+    }
+
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      margin: 10px 0 15px;
+      font-weight: bold;
+      color: #3a8bfd;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: #3a8bfd;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #2563eb;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SJ Collection 🎬</h1>
+  <div class="grid" id="categoryGrid">
+    <!-- Cards will load here -->
+  </div>
+
+  <script>
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9ZQXuHB2cMPjTDWj0oqfoGcW0SHZ2LtRzad0BaYKpY8P95prui51vSeLCl_EyOTRONtY4Z3VAtNnn/pub?output=csv";
+
+    function convertDriveImageUrl(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+      return match && match[1] ? `https://drive.google.com/uc?export=view&id=${match[1]}` : url;
+    }
+
+    async function loadCategories() {
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        const csv = await response.text();
+        const rows = csv.trim().split("\n").slice(1); // skip header
+        const container = document.getElementById("categoryGrid");
+
+        rows.forEach(row => {
+          const cols = row.split(",");
+          const image = convertDriveImageUrl(cols[0].trim());
+          const name = cols[1].trim();
+          const page = cols[2].trim();
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+            <img src="${image}" alt="${name}">
+            <div class="card-content">
+              <div class="card-title">${name}</div>
+              <a class="btn" href="videos.html?category=${encodeURIComponent(page)}" target="_blank">View</a>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      }
+    }
+
+    loadCategories();
+  </script>
+
+</body>
+</html>
