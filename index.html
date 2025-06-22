@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Streaming Site</title>
+<style>
+  body { background: #141414; color: white; font-family: Arial, sans-serif; padding: 20px; }
+  h1 { margin-bottom: 20px; }
+  #movies { display: flex; flex-wrap: wrap; gap: 15px; }
+  .movie-card {
+    background: #222;
+    border-radius: 10px;
+    width: 160px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+  }
+  .movie-card:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.7);
+  }
+  .movie-poster { width: 100%; border-radius: 10px 10px 0 0; }
+  .movie-info { padding: 10px; }
+  .movie-title { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+  .movie-desc { font-size: 12px; color: #aaa; }
+
+  /* Modal styles */
+  #videoModal {
+    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.8); justify-content: center; align-items: center;
+    z-index: 9999;
+  }
+  #videoModal video {
+    max-width: 80vw; max-height: 80vh; border-radius: 12px;
+    box-shadow: 0 0 20px #0f0;
+  }
+  #closeBtn {
+    position: absolute; top: 20px; right: 30px; font-size: 30px;
+    color: white; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>My Streaming Site</h1>
+<div id="movies">Loading movies...</div>
+
+<!-- Video modal -->
+<div id="videoModal">
+  <span id="closeBtn">&times;</span>
+  <video id="videoPlayer" controls></video>
+</div>
+
+<script>
+  const sheetId = '1qrFDO_9BGQBNCnhhtfkLBe9u7IxhGMjH1gIIrMyH9rE'; // Your Google Sheet ID
+  const sheetURL = `https://spreadsheets.google.com/feeds/list/${sheetId}/od6/public/values?alt=json`;
+
+  const moviesContainer = document.getElementById('movies');
+  const videoModal = document.getElementById('videoModal');
+  const videoPlayer = document.getElementById('videoPlayer');
+  const closeBtn = document.getElementById('closeBtn');
+
+  closeBtn.onclick = () => {
+    videoModal.style.display = 'none';
+    videoPlayer.pause();
+    videoPlayer.src = '';
+  };
+
+  async function fetchMovies() {
+    try {
+      const res = await fetch(sheetURL);
+      const data = await res.json();
+      const entries = data.feed.entry;
+      moviesContainer.innerHTML = ''; // Clear loading text
+
+      entries.forEach(entry => {
+        const image = entry['gsx$image'] ? entry['gsx$image'].$t : '';
+        const video = entry['gsx$googledrivelink'] ? entry['gsx$googledrivelink'].$t : '';
+        const title = entry['gsx$title'] ? entry['gsx$title'].$t : '';
+        const desc = entry['gsx$description'] ? entry['gsx$description'].$t : '';
+
+        const videoIdMatch = video.match(/\/d\/(.+?)\//);
+        let videoPreviewURL = '';
+        if(videoIdMatch && videoIdMatch[1]){
+          videoPreviewURL = `https://drive.google.com/file/d/${videoIdMatch[1]}/preview`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+
+        card.innerHTML = `
+          <img src="${image}" alt="${title}" class="movie-poster" />
+          <div class="movie-info">
+            <div class="movie-title">${title}</div>
+            <div class="movie-desc">${desc}</div>
+          </div>
+        `;
+
+        card.onclick = () => {
+          videoPlayer.src = videoPreviewURL;
+          videoModal.style.display = 'flex';
+          videoPlayer.play();
+        };
+
+        moviesContainer.appendChild(card);
+      });
+
+    } catch (error) {
+      moviesContainer.innerHTML = 'Failed to load movies. Make sure your sheet is published and public.';
+      console.error(error);
+    }
+  }
+
+  fetchMovies();
+</script>
+
+</body>
+</html>
