@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Streaming Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background-color: #1f1f1f;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .card img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 15px;
+      text-align: center;
+    }
+    .card-content h3 {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    .watch-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #e50914;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+    .watch-btn:hover {
+      background-color: #b20710;
+    }
+  </style>
+</head>
+<body>
+  <h1>SJ's Streaming Hub</h1>
+  <div class="grid" id="content"></div>
+
+  <script>
+    const SHEET_ID = '2PACX-1vSycG312-4QK5m_o9pvUuI4EyfWc1Gpb27iJhsUWQld4NtciPJqGua7euur_jPEZYzRM762ViT_KPmb';
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+
+    fetch(SHEET_URL)
+      .then(response => response.text())
+      .then(data => {
+        const rows = data.trim().split('\n');
+        const contentDiv = document.getElementById('content');
+
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i].split(',');
+          const image = cols[0];
+          const title = cols[1];
+          const link = cols[2];
+
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          card.innerHTML = `
+            <img src="${image}" alt="${title}" />
+            <div class="card-content">
+              <h3>${title}</h3>
+              <a href="${link}" target="_blank" class="watch-btn">Watch Now</a>
+            </div>
+          `;
+
+          contentDiv.appendChild(card);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading data:', error);
+      });
+  </script>
+</body>
+</html>
